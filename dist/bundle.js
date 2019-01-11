@@ -241,6 +241,7 @@ var App = function (_Component) {
     _react2.default.createElement(
         _reactRouterDom.Route,
         { path: '/', component: App },
+        _react2.default.createElement(_reactRouterDom.Route, { path: '???', component: _Home2.default }),
         _react2.default.createElement(_reactRouterDom.Route, { path: 'about', component: _About2.default }),
         _react2.default.createElement(_reactRouterDom.Route, { path: 'repos', component: _Repos2.default })
     )

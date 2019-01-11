@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {render} from 'react-dom';
-import {BrowserRouter as Router, Route, Link} from 'react-router-dom';
+import {BrowserRouter as Router,Route ,Link} from 'react-router-dom';
 
 import About from './About';
 import Home from './Home';
@@ -27,6 +27,7 @@ class App extends Component{
 render((
     <Router>
         <Route path="/" component={App}>
+            <Route path="???" component={Home}/>
             <Route path="about" component={About}/>
             <Route path="repos" component={Repos}/>
         </Route>

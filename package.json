@@ -24,6 +24,7 @@
     "babel-register": "^6.26.0",
     "history": "^1.17.0",
     "react-router": "^1.0.3",
+    "react-router-dom": "^4.3.1",
     "webpack": "^4.28.4",
     "webpack-cli": "^3.2.1",
     "webpack-dev-server": "^3.1.14"

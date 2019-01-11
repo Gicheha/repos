@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {render} from 'react-dom';
-import {Router, Route, Link} from "react-router";
+import {BrowserRouter as Router, Route, Link} from 'react-router-dom';
 
 import About from './About';
 import Home from './Home';
@@ -14,8 +14,8 @@ class App extends Component{
                <header>App</header>
                <menu>
                    <ul>
-                       <li><a href="#/about">About</a></li>
-                       <li><a href="#/repos">Repos</a></li>
+                       <li><Link to="/about">About</Link></li>
+                       <li><Link to="/repos">Repos</Link></li>
                    </ul>
                </menu>
                 {this.props.children}

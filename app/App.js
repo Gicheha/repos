@@ -5,6 +5,7 @@ import {BrowserRouter as Router,Route ,Link} from 'react-router-dom';
 import About from './About';
 import Home from './Home';
 import Repos from './Repos';
+import {createHistory} from "history/es6";
 
 class App extends Component{
 
@@ -26,10 +27,10 @@ class App extends Component{
 
 render((
     <Router>
-        <Route path="/" component={App}>
-            <Route path="???" component={Home}/>
-            <Route path="about" component={About}/>
-            <Route path="repos" component={Repos}/>
-        </Route>
+        <div>
+            <Route path="/" component={App}/>
+            <Route path="/about" component={About}/>
+            <Route path="/repos" component={Repos}/>
+        </div>
     </Router>
 ), document.getElementById('root'));

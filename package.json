@@ -10,7 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "react": "^16.7.0",
-    "react-dom": "^16.7.0"
+    "react-dom": "^16.7.0",
+    "whatwg-fetch": "^3.0.0"
   },
   "devDependencies": {
     "babel": "^6.23.0",

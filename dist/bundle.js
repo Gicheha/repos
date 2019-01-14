@@ -126,7 +126,7 @@ var About = function (_Component) {
     _createClass(About, [{
         key: 'render',
         value: function render() {
-            _react2.default.createElement(
+            return _react2.default.createElement(
                 'h1',
                 null,
                 'ABOUT'
@@ -172,6 +172,8 @@ var _Home2 = _interopRequireDefault(_Home);
 var _Repos = __webpack_require__(/*! ./Repos */ "./app/Repos.js");
 
 var _Repos2 = _interopRequireDefault(_Repos);
+
+var _es = __webpack_require__(/*! history/es6 */ "./node_modules/history/es6/index.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -239,11 +241,11 @@ var App = function (_Component) {
     _reactRouterDom.BrowserRouter,
     null,
     _react2.default.createElement(
-        _reactRouterDom.Route,
-        { path: '/', component: App },
-        _react2.default.createElement(_reactRouterDom.Route, { path: '???', component: _Home2.default }),
-        _react2.default.createElement(_reactRouterDom.Route, { path: 'about', component: _About2.default }),
-        _react2.default.createElement(_reactRouterDom.Route, { path: 'repos', component: _Repos2.default })
+        'div',
+        null,
+        _react2.default.createElement(_reactRouterDom.Route, { path: '/', component: App }),
+        _react2.default.createElement(_reactRouterDom.Route, { path: '/about', component: _About2.default }),
+        _react2.default.createElement(_reactRouterDom.Route, { path: '/repos', component: _Repos2.default })
     )
 ), document.getElementById('root'));
 
@@ -356,6 +358,2089 @@ var Repos = function (_Component) {
 }(_react.Component);
 
 exports.default = Repos;
+
+/***/ }),
+
+/***/ "./node_modules/deep-equal/index.js":
+/*!******************************************!*\
+  !*** ./node_modules/deep-equal/index.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var pSlice = Array.prototype.slice;
+var objectKeys = __webpack_require__(/*! ./lib/keys.js */ "./node_modules/deep-equal/lib/keys.js");
+var isArguments = __webpack_require__(/*! ./lib/is_arguments.js */ "./node_modules/deep-equal/lib/is_arguments.js");
+
+var deepEqual = module.exports = function (actual, expected, opts) {
+  if (!opts) opts = {};
+  // 7.1. All identical values are equivalent, as determined by ===.
+  if (actual === expected) {
+    return true;
+
+  } else if (actual instanceof Date && expected instanceof Date) {
+    return actual.getTime() === expected.getTime();
+
+  // 7.3. Other pairs that do not both pass typeof value == 'object',
+  // equivalence is determined by ==.
+  } else if (!actual || !expected || typeof actual != 'object' && typeof expected != 'object') {
+    return opts.strict ? actual === expected : actual == expected;
+
+  // 7.4. For all other Object pairs, including Array objects, equivalence is
+  // determined by having the same number of owned properties (as verified
+  // with Object.prototype.hasOwnProperty.call), the same set of keys
+  // (although not necessarily the same order), equivalent values for every
+  // corresponding key, and an identical 'prototype' property. Note: this
+  // accounts for both named and indexed properties on Arrays.
+  } else {
+    return objEquiv(actual, expected, opts);
+  }
+}
+
+function isUndefinedOrNull(value) {
+  return value === null || value === undefined;
+}
+
+function isBuffer (x) {
+  if (!x || typeof x !== 'object' || typeof x.length !== 'number') return false;
+  if (typeof x.copy !== 'function' || typeof x.slice !== 'function') {
+    return false;
+  }
+  if (x.length > 0 && typeof x[0] !== 'number') return false;
+  return true;
+}
+
+function objEquiv(a, b, opts) {
+  var i, key;
+  if (isUndefinedOrNull(a) || isUndefinedOrNull(b))
+    return false;
+  // an identical 'prototype' property.
+  if (a.prototype !== b.prototype) return false;
+  //~~~I've managed to break Object.keys through screwy arguments passing.
+  //   Converting to array solves the problem.
+  if (isArguments(a)) {
+    if (!isArguments(b)) {
+      return false;
+    }
+    a = pSlice.call(a);
+    b = pSlice.call(b);
+    return deepEqual(a, b, opts);
+  }
+  if (isBuffer(a)) {
+    if (!isBuffer(b)) {
+      return false;
+    }
+    if (a.length !== b.length) return false;
+    for (i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  }
+  try {
+    var ka = objectKeys(a),
+        kb = objectKeys(b);
+  } catch (e) {//happens when one is a string literal and the other isn't
+    return false;
+  }
+  // having the same number of owned properties (keys incorporates
+  // hasOwnProperty)
+  if (ka.length != kb.length)
+    return false;
+  //the same set of keys (although not necessarily the same order),
+  ka.sort();
+  kb.sort();
+  //~~~cheap key test
+  for (i = ka.length - 1; i >= 0; i--) {
+    if (ka[i] != kb[i])
+      return false;
+  }
+  //equivalent values for every corresponding key, and
+  //~~~possibly expensive deep test
+  for (i = ka.length - 1; i >= 0; i--) {
+    key = ka[i];
+    if (!deepEqual(a[key], b[key], opts)) return false;
+  }
+  return typeof a === typeof b;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/deep-equal/lib/is_arguments.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/deep-equal/lib/is_arguments.js ***!
+  \*****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+var supportsArgumentsClass = (function(){
+  return Object.prototype.toString.call(arguments)
+})() == '[object Arguments]';
+
+exports = module.exports = supportsArgumentsClass ? supported : unsupported;
+
+exports.supported = supported;
+function supported(object) {
+  return Object.prototype.toString.call(object) == '[object Arguments]';
+};
+
+exports.unsupported = unsupported;
+function unsupported(object){
+  return object &&
+    typeof object == 'object' &&
+    typeof object.length == 'number' &&
+    Object.prototype.hasOwnProperty.call(object, 'callee') &&
+    !Object.prototype.propertyIsEnumerable.call(object, 'callee') ||
+    false;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/deep-equal/lib/keys.js":
+/*!*********************************************!*\
+  !*** ./node_modules/deep-equal/lib/keys.js ***!
+  \*********************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+exports = module.exports = typeof Object.keys === 'function'
+  ? Object.keys : shim;
+
+exports.shim = shim;
+function shim (obj) {
+  var keys = [];
+  for (var key in obj) keys.push(key);
+  return keys;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/Actions.js":
+/*!*********************************************!*\
+  !*** ./node_modules/history/es6/Actions.js ***!
+  \*********************************************/
+/*! exports provided: PUSH, REPLACE, POP, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PUSH", function() { return PUSH; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "REPLACE", function() { return REPLACE; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "POP", function() { return POP; });
+/**
+ * Indicates that navigation was caused by a call to history.push.
+ */
+
+
+var PUSH = 'PUSH';
+
+
+/**
+ * Indicates that navigation was caused by a call to history.replace.
+ */
+var REPLACE = 'REPLACE';
+
+
+/**
+ * Indicates that navigation was caused by some other action such
+ * as using a browser's back/forward buttons and/or manually manipulating
+ * the URL in a browser's location bar. This is the default.
+ *
+ * See https://developer.mozilla.org/en-US/docs/Web/API/WindowEventHandlers/onpopstate
+ * for more information.
+ */
+var POP = 'POP';
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  PUSH: PUSH,
+  REPLACE: REPLACE,
+  POP: POP
+});
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/AsyncUtils.js":
+/*!************************************************!*\
+  !*** ./node_modules/history/es6/AsyncUtils.js ***!
+  \************************************************/
+/*! exports provided: loopAsync */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "loopAsync", function() { return loopAsync; });
+
+
+
+
+function loopAsync(turns, work, callback) {
+  var currentTurn = 0;
+  var isDone = false;
+
+  function done() {
+    isDone = true;
+    callback.apply(this, arguments);
+  }
+
+  function next() {
+    if (isDone) return;
+
+    if (currentTurn < turns) {
+      work.call(this, currentTurn++, next, done);
+    } else {
+      done.apply(this, arguments);
+    }
+  }
+
+  next();
+}
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/DOMStateStorage.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/history/es6/DOMStateStorage.js ***!
+  \*****************************************************/
+/*! exports provided: saveState, readState */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "saveState", function() { return saveState; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "readState", function() { return readState; });
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! warning */ "./node_modules/warning/browser.js");
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(warning__WEBPACK_IMPORTED_MODULE_0__);
+/*eslint-disable no-empty */
+
+
+
+
+
+
+var KeyPrefix = '@@History/';
+var QuotaExceededError = 'QuotaExceededError';
+var SecurityError = 'SecurityError';
+
+function createKey(key) {
+  return KeyPrefix + key;
+}
+
+function saveState(key, state) {
+  try {
+    window.sessionStorage.setItem(createKey(key), JSON.stringify(state));
+  } catch (error) {
+    if (error.name === SecurityError) {
+      // Blocking cookies in Chrome/Firefox/Safari throws SecurityError on any
+      // attempt to access window.sessionStorage.
+       true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(false, '[history] Unable to save state; sessionStorage is not available due to security settings') : undefined;
+
+      return;
+    }
+
+    if (error.name === QuotaExceededError && window.sessionStorage.length === 0) {
+      // Safari "private mode" throws QuotaExceededError.
+       true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(false, '[history] Unable to save state; sessionStorage is not available in Safari private mode') : undefined;
+
+      return;
+    }
+
+    throw error;
+  }
+}
+
+function readState(key) {
+  var json = undefined;
+  try {
+    json = window.sessionStorage.getItem(createKey(key));
+  } catch (error) {
+    if (error.name === SecurityError) {
+      // Blocking cookies in Chrome/Firefox/Safari throws SecurityError on any
+      // attempt to access window.sessionStorage.
+       true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(false, '[history] Unable to read state; sessionStorage is not available due to security settings') : undefined;
+
+      return null;
+    }
+  }
+
+  if (json) {
+    try {
+      return JSON.parse(json);
+    } catch (error) {
+      // Ignore invalid JSON.
+    }
+  }
+
+  return null;
+}
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/DOMUtils.js":
+/*!**********************************************!*\
+  !*** ./node_modules/history/es6/DOMUtils.js ***!
+  \**********************************************/
+/*! exports provided: addEventListener, removeEventListener, getHashPath, replaceHashPath, getWindowPath, go, getUserConfirmation, supportsHistory, supportsGoWithoutReloadUsingHash */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addEventListener", function() { return addEventListener; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "removeEventListener", function() { return removeEventListener; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getHashPath", function() { return getHashPath; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "replaceHashPath", function() { return replaceHashPath; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getWindowPath", function() { return getWindowPath; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "go", function() { return go; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getUserConfirmation", function() { return getUserConfirmation; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "supportsHistory", function() { return supportsHistory; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "supportsGoWithoutReloadUsingHash", function() { return supportsGoWithoutReloadUsingHash; });
+
+
+
+
+
+
+
+
+
+
+
+
+function addEventListener(node, event, listener) {
+  if (node.addEventListener) {
+    node.addEventListener(event, listener, false);
+  } else {
+    node.attachEvent('on' + event, listener);
+  }
+}
+
+function removeEventListener(node, event, listener) {
+  if (node.removeEventListener) {
+    node.removeEventListener(event, listener, false);
+  } else {
+    node.detachEvent('on' + event, listener);
+  }
+}
+
+function getHashPath() {
+  // We can't use window.location.hash here because it's not
+  // consistent across browsers - Firefox will pre-decode it!
+  return window.location.href.split('#')[1] || '';
+}
+
+function replaceHashPath(path) {
+  window.location.replace(window.location.pathname + window.location.search + '#' + path);
+}
+
+function getWindowPath() {
+  return window.location.pathname + window.location.search + window.location.hash;
+}
+
+function go(n) {
+  if (n) window.history.go(n);
+}
+
+function getUserConfirmation(message, callback) {
+  callback(window.confirm(message));
+}
+
+/**
+ * Returns true if the HTML5 history API is supported. Taken from Modernizr.
+ *
+ * https://github.com/Modernizr/Modernizr/blob/master/LICENSE
+ * https://github.com/Modernizr/Modernizr/blob/master/feature-detects/history.js
+ * changed to avoid false negatives for Windows Phones: https://github.com/rackt/react-router/issues/586
+ */
+
+function supportsHistory() {
+  var ua = navigator.userAgent;
+  if ((ua.indexOf('Android 2.') !== -1 || ua.indexOf('Android 4.0') !== -1) && ua.indexOf('Mobile Safari') !== -1 && ua.indexOf('Chrome') === -1 && ua.indexOf('Windows Phone') === -1) {
+    return false;
+  }
+  // FIXME: Work around our browser history not working correctly on Chrome
+  // iOS: https://github.com/rackt/react-router/issues/2565
+  if (ua.indexOf('CriOS') !== -1) {
+    return false;
+  }
+  return window.history && 'pushState' in window.history;
+}
+
+/**
+ * Returns false if using go(n) with hash history causes a full page reload.
+ */
+
+function supportsGoWithoutReloadUsingHash() {
+  var ua = navigator.userAgent;
+  return ua.indexOf('Firefox') === -1;
+}
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/ExecutionEnvironment.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/history/es6/ExecutionEnvironment.js ***!
+  \**********************************************************/
+/*! exports provided: canUseDOM */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "canUseDOM", function() { return canUseDOM; });
+
+
+var canUseDOM = !!(typeof window !== 'undefined' && window.document && window.document.createElement);
+
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/createBrowserHistory.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/history/es6/createBrowserHistory.js ***!
+  \**********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var invariant__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! invariant */ "./node_modules/invariant/browser.js");
+/* harmony import */ var invariant__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(invariant__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _Actions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Actions */ "./node_modules/history/es6/Actions.js");
+/* harmony import */ var _ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ExecutionEnvironment */ "./node_modules/history/es6/ExecutionEnvironment.js");
+/* harmony import */ var _DOMUtils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./DOMUtils */ "./node_modules/history/es6/DOMUtils.js");
+/* harmony import */ var _DOMStateStorage__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./DOMStateStorage */ "./node_modules/history/es6/DOMStateStorage.js");
+/* harmony import */ var _createDOMHistory__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./createDOMHistory */ "./node_modules/history/es6/createDOMHistory.js");
+/* harmony import */ var _parsePath__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./parsePath */ "./node_modules/history/es6/parsePath.js");
+
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+
+
+
+
+
+
+
+
+/**
+ * Creates and returns a history object that uses HTML5's history API
+ * (pushState, replaceState, and the popstate event) to manage history.
+ * This is the recommended method of managing history in browsers because
+ * it provides the cleanest URLs.
+ *
+ * Note: In browsers that do not support the HTML5 history API full
+ * page reloads will be used to preserve URLs.
+ */
+function createBrowserHistory() {
+  var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+  !_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_2__["canUseDOM"] ?  true ? invariant__WEBPACK_IMPORTED_MODULE_0___default()(false, 'Browser history needs a DOM') : undefined : undefined;
+
+  var forceRefresh = options.forceRefresh;
+
+  var isSupported = Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_3__["supportsHistory"])();
+  var useRefresh = !isSupported || forceRefresh;
+
+  function getCurrentLocation(historyState) {
+    historyState = historyState || window.history.state || {};
+
+    var path = Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_3__["getWindowPath"])();
+    var _historyState = historyState;
+    var key = _historyState.key;
+
+    var state = undefined;
+    if (key) {
+      state = Object(_DOMStateStorage__WEBPACK_IMPORTED_MODULE_4__["readState"])(key);
+    } else {
+      state = null;
+      key = history.createKey();
+
+      if (isSupported) window.history.replaceState(_extends({}, historyState, { key: key }), null, path);
+    }
+
+    var location = Object(_parsePath__WEBPACK_IMPORTED_MODULE_6__["default"])(path);
+
+    return history.createLocation(_extends({}, location, { state: state }), undefined, key);
+  }
+
+  function startPopStateListener(_ref) {
+    var transitionTo = _ref.transitionTo;
+
+    function popStateListener(event) {
+      if (event.state === undefined) return; // Ignore extraneous popstate events in WebKit.
+
+      transitionTo(getCurrentLocation(event.state));
+    }
+
+    Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_3__["addEventListener"])(window, 'popstate', popStateListener);
+
+    return function () {
+      Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_3__["removeEventListener"])(window, 'popstate', popStateListener);
+    };
+  }
+
+  function finishTransition(location) {
+    var basename = location.basename;
+    var pathname = location.pathname;
+    var search = location.search;
+    var hash = location.hash;
+    var state = location.state;
+    var action = location.action;
+    var key = location.key;
+
+    if (action === _Actions__WEBPACK_IMPORTED_MODULE_1__["POP"]) return; // Nothing to do.
+
+    Object(_DOMStateStorage__WEBPACK_IMPORTED_MODULE_4__["saveState"])(key, state);
+
+    var path = (basename || '') + pathname + search + hash;
+    var historyState = {
+      key: key
+    };
+
+    if (action === _Actions__WEBPACK_IMPORTED_MODULE_1__["PUSH"]) {
+      if (useRefresh) {
+        window.location.href = path;
+        return false; // Prevent location update.
+      } else {
+          window.history.pushState(historyState, null, path);
+        }
+    } else {
+      // REPLACE
+      if (useRefresh) {
+        window.location.replace(path);
+        return false; // Prevent location update.
+      } else {
+          window.history.replaceState(historyState, null, path);
+        }
+    }
+  }
+
+  var history = Object(_createDOMHistory__WEBPACK_IMPORTED_MODULE_5__["default"])(_extends({}, options, {
+    getCurrentLocation: getCurrentLocation,
+    finishTransition: finishTransition,
+    saveState: _DOMStateStorage__WEBPACK_IMPORTED_MODULE_4__["saveState"]
+  }));
+
+  var listenerCount = 0,
+      stopPopStateListener = undefined;
+
+  function listenBefore(listener) {
+    if (++listenerCount === 1) stopPopStateListener = startPopStateListener(history);
+
+    var unlisten = history.listenBefore(listener);
+
+    return function () {
+      unlisten();
+
+      if (--listenerCount === 0) stopPopStateListener();
+    };
+  }
+
+  function listen(listener) {
+    if (++listenerCount === 1) stopPopStateListener = startPopStateListener(history);
+
+    var unlisten = history.listen(listener);
+
+    return function () {
+      unlisten();
+
+      if (--listenerCount === 0) stopPopStateListener();
+    };
+  }
+
+  // deprecated
+  function registerTransitionHook(hook) {
+    if (++listenerCount === 1) stopPopStateListener = startPopStateListener(history);
+
+    history.registerTransitionHook(hook);
+  }
+
+  // deprecated
+  function unregisterTransitionHook(hook) {
+    history.unregisterTransitionHook(hook);
+
+    if (--listenerCount === 0) stopPopStateListener();
+  }
+
+  return _extends({}, history, {
+    listenBefore: listenBefore,
+    listen: listen,
+    registerTransitionHook: registerTransitionHook,
+    unregisterTransitionHook: unregisterTransitionHook
+  });
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (createBrowserHistory);
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/createDOMHistory.js":
+/*!******************************************************!*\
+  !*** ./node_modules/history/es6/createDOMHistory.js ***!
+  \******************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var invariant__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! invariant */ "./node_modules/invariant/browser.js");
+/* harmony import */ var invariant__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(invariant__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ExecutionEnvironment */ "./node_modules/history/es6/ExecutionEnvironment.js");
+/* harmony import */ var _DOMUtils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DOMUtils */ "./node_modules/history/es6/DOMUtils.js");
+/* harmony import */ var _createHistory__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./createHistory */ "./node_modules/history/es6/createHistory.js");
+
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+
+
+
+
+
+function createDOMHistory(options) {
+  var history = Object(_createHistory__WEBPACK_IMPORTED_MODULE_3__["default"])(_extends({
+    getUserConfirmation: _DOMUtils__WEBPACK_IMPORTED_MODULE_2__["getUserConfirmation"]
+  }, options, {
+    go: _DOMUtils__WEBPACK_IMPORTED_MODULE_2__["go"]
+  }));
+
+  function listen(listener) {
+    !_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_1__["canUseDOM"] ?  true ? invariant__WEBPACK_IMPORTED_MODULE_0___default()(false, 'DOM history needs a DOM') : undefined : undefined;
+
+    return history.listen(listener);
+  }
+
+  return _extends({}, history, {
+    listen: listen
+  });
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (createDOMHistory);
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/createHashHistory.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/history/es6/createHashHistory.js ***!
+  \*******************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! warning */ "./node_modules/warning/browser.js");
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(warning__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var invariant__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! invariant */ "./node_modules/invariant/browser.js");
+/* harmony import */ var invariant__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(invariant__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _Actions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Actions */ "./node_modules/history/es6/Actions.js");
+/* harmony import */ var _ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ExecutionEnvironment */ "./node_modules/history/es6/ExecutionEnvironment.js");
+/* harmony import */ var _DOMUtils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./DOMUtils */ "./node_modules/history/es6/DOMUtils.js");
+/* harmony import */ var _DOMStateStorage__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./DOMStateStorage */ "./node_modules/history/es6/DOMStateStorage.js");
+/* harmony import */ var _createDOMHistory__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./createDOMHistory */ "./node_modules/history/es6/createDOMHistory.js");
+/* harmony import */ var _parsePath__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./parsePath */ "./node_modules/history/es6/parsePath.js");
+
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+
+
+
+
+
+
+
+
+
+function isAbsolutePath(path) {
+  return typeof path === 'string' && path.charAt(0) === '/';
+}
+
+function ensureSlash() {
+  var path = Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_4__["getHashPath"])();
+
+  if (isAbsolutePath(path)) return true;
+
+  Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_4__["replaceHashPath"])('/' + path);
+
+  return false;
+}
+
+function addQueryStringValueToPath(path, key, value) {
+  return path + (path.indexOf('?') === -1 ? '?' : '&') + (key + '=' + value);
+}
+
+function stripQueryStringValueFromPath(path, key) {
+  return path.replace(new RegExp('[?&]?' + key + '=[a-zA-Z0-9]+'), '');
+}
+
+function getQueryStringValueFromPath(path, key) {
+  var match = path.match(new RegExp('\\?.*?\\b' + key + '=(.+?)\\b'));
+  return match && match[1];
+}
+
+var DefaultQueryKey = '_k';
+
+function createHashHistory() {
+  var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+  !_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_3__["canUseDOM"] ?  true ? invariant__WEBPACK_IMPORTED_MODULE_1___default()(false, 'Hash history needs a DOM') : undefined : undefined;
+
+  var queryKey = options.queryKey;
+
+  if (queryKey === undefined || !!queryKey) queryKey = typeof queryKey === 'string' ? queryKey : DefaultQueryKey;
+
+  function getCurrentLocation() {
+    var path = Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_4__["getHashPath"])();
+
+    var key = undefined,
+        state = undefined;
+    if (queryKey) {
+      key = getQueryStringValueFromPath(path, queryKey);
+      path = stripQueryStringValueFromPath(path, queryKey);
+
+      if (key) {
+        state = Object(_DOMStateStorage__WEBPACK_IMPORTED_MODULE_5__["readState"])(key);
+      } else {
+        state = null;
+        key = history.createKey();
+        Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_4__["replaceHashPath"])(addQueryStringValueToPath(path, queryKey, key));
+      }
+    } else {
+      key = state = null;
+    }
+
+    var location = Object(_parsePath__WEBPACK_IMPORTED_MODULE_7__["default"])(path);
+
+    return history.createLocation(_extends({}, location, { state: state }), undefined, key);
+  }
+
+  function startHashChangeListener(_ref) {
+    var transitionTo = _ref.transitionTo;
+
+    function hashChangeListener() {
+      if (!ensureSlash()) return; // Always make sure hashes are preceeded with a /.
+
+      transitionTo(getCurrentLocation());
+    }
+
+    ensureSlash();
+    Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_4__["addEventListener"])(window, 'hashchange', hashChangeListener);
+
+    return function () {
+      Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_4__["removeEventListener"])(window, 'hashchange', hashChangeListener);
+    };
+  }
+
+  function finishTransition(location) {
+    var basename = location.basename;
+    var pathname = location.pathname;
+    var search = location.search;
+    var state = location.state;
+    var action = location.action;
+    var key = location.key;
+
+    if (action === _Actions__WEBPACK_IMPORTED_MODULE_2__["POP"]) return; // Nothing to do.
+
+    var path = (basename || '') + pathname + search;
+
+    if (queryKey) {
+      path = addQueryStringValueToPath(path, queryKey, key);
+      Object(_DOMStateStorage__WEBPACK_IMPORTED_MODULE_5__["saveState"])(key, state);
+    } else {
+      // Drop key and state.
+      location.key = location.state = null;
+    }
+
+    var currentHash = Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_4__["getHashPath"])();
+
+    if (action === _Actions__WEBPACK_IMPORTED_MODULE_2__["PUSH"]) {
+      if (currentHash !== path) {
+        window.location.hash = path;
+      } else {
+         true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(false, 'You cannot PUSH the same path using hash history') : undefined;
+      }
+    } else if (currentHash !== path) {
+      // REPLACE
+      Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_4__["replaceHashPath"])(path);
+    }
+  }
+
+  var history = Object(_createDOMHistory__WEBPACK_IMPORTED_MODULE_6__["default"])(_extends({}, options, {
+    getCurrentLocation: getCurrentLocation,
+    finishTransition: finishTransition,
+    saveState: _DOMStateStorage__WEBPACK_IMPORTED_MODULE_5__["saveState"]
+  }));
+
+  var listenerCount = 0,
+      stopHashChangeListener = undefined;
+
+  function listenBefore(listener) {
+    if (++listenerCount === 1) stopHashChangeListener = startHashChangeListener(history);
+
+    var unlisten = history.listenBefore(listener);
+
+    return function () {
+      unlisten();
+
+      if (--listenerCount === 0) stopHashChangeListener();
+    };
+  }
+
+  function listen(listener) {
+    if (++listenerCount === 1) stopHashChangeListener = startHashChangeListener(history);
+
+    var unlisten = history.listen(listener);
+
+    return function () {
+      unlisten();
+
+      if (--listenerCount === 0) stopHashChangeListener();
+    };
+  }
+
+  function push(location) {
+     true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(queryKey || location.state == null, 'You cannot use state without a queryKey it will be dropped') : undefined;
+
+    history.push(location);
+  }
+
+  function replace(location) {
+     true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(queryKey || location.state == null, 'You cannot use state without a queryKey it will be dropped') : undefined;
+
+    history.replace(location);
+  }
+
+  var goIsSupportedWithoutReload = Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_4__["supportsGoWithoutReloadUsingHash"])();
+
+  function go(n) {
+     true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(goIsSupportedWithoutReload, 'Hash history go(n) causes a full page reload in this browser') : undefined;
+
+    history.go(n);
+  }
+
+  function createHref(path) {
+    return '#' + history.createHref(path);
+  }
+
+  // deprecated
+  function registerTransitionHook(hook) {
+    if (++listenerCount === 1) stopHashChangeListener = startHashChangeListener(history);
+
+    history.registerTransitionHook(hook);
+  }
+
+  // deprecated
+  function unregisterTransitionHook(hook) {
+    history.unregisterTransitionHook(hook);
+
+    if (--listenerCount === 0) stopHashChangeListener();
+  }
+
+  // deprecated
+  function pushState(state, path) {
+     true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(queryKey || state == null, 'You cannot use state without a queryKey it will be dropped') : undefined;
+
+    history.pushState(state, path);
+  }
+
+  // deprecated
+  function replaceState(state, path) {
+     true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(queryKey || state == null, 'You cannot use state without a queryKey it will be dropped') : undefined;
+
+    history.replaceState(state, path);
+  }
+
+  return _extends({}, history, {
+    listenBefore: listenBefore,
+    listen: listen,
+    push: push,
+    replace: replace,
+    go: go,
+    createHref: createHref,
+
+    registerTransitionHook: registerTransitionHook, // deprecated - warning is in createHistory
+    unregisterTransitionHook: unregisterTransitionHook, // deprecated - warning is in createHistory
+    pushState: pushState, // deprecated - warning is in createHistory
+    replaceState: replaceState // deprecated - warning is in createHistory
+  });
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (createHashHistory);
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/createHistory.js":
+/*!***************************************************!*\
+  !*** ./node_modules/history/es6/createHistory.js ***!
+  \***************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var deep_equal__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! deep-equal */ "./node_modules/deep-equal/index.js");
+/* harmony import */ var deep_equal__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(deep_equal__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _AsyncUtils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./AsyncUtils */ "./node_modules/history/es6/AsyncUtils.js");
+/* harmony import */ var _Actions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Actions */ "./node_modules/history/es6/Actions.js");
+/* harmony import */ var _createLocation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./createLocation */ "./node_modules/history/es6/createLocation.js");
+/* harmony import */ var _runTransitionHook__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./runTransitionHook */ "./node_modules/history/es6/runTransitionHook.js");
+/* harmony import */ var _parsePath__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./parsePath */ "./node_modules/history/es6/parsePath.js");
+/* harmony import */ var _deprecate__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./deprecate */ "./node_modules/history/es6/deprecate.js");
+//import warning from 'warning'
+
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+
+
+
+
+
+
+
+
+function createRandomKey(length) {
+  return Math.random().toString(36).substr(2, length);
+}
+
+function locationsAreEqual(a, b) {
+  return a.pathname === b.pathname && a.search === b.search &&
+  //a.action === b.action && // Different action !== location change.
+  a.key === b.key && deep_equal__WEBPACK_IMPORTED_MODULE_0___default()(a.state, b.state);
+}
+
+var DefaultKeyLength = 6;
+
+function createHistory() {
+  var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+  var getCurrentLocation = options.getCurrentLocation;
+  var finishTransition = options.finishTransition;
+  var saveState = options.saveState;
+  var go = options.go;
+  var keyLength = options.keyLength;
+  var getUserConfirmation = options.getUserConfirmation;
+
+  if (typeof keyLength !== 'number') keyLength = DefaultKeyLength;
+
+  var transitionHooks = [];
+
+  function listenBefore(hook) {
+    transitionHooks.push(hook);
+
+    return function () {
+      transitionHooks = transitionHooks.filter(function (item) {
+        return item !== hook;
+      });
+    };
+  }
+
+  var allKeys = [];
+  var changeListeners = [];
+  var location = undefined;
+
+  function getCurrent() {
+    if (pendingLocation && pendingLocation.action === _Actions__WEBPACK_IMPORTED_MODULE_2__["POP"]) {
+      return allKeys.indexOf(pendingLocation.key);
+    } else if (location) {
+      return allKeys.indexOf(location.key);
+    } else {
+      return -1;
+    }
+  }
+
+  function updateLocation(newLocation) {
+    var current = getCurrent();
+
+    location = newLocation;
+
+    if (location.action === _Actions__WEBPACK_IMPORTED_MODULE_2__["PUSH"]) {
+      allKeys = [].concat(allKeys.slice(0, current + 1), [location.key]);
+    } else if (location.action === _Actions__WEBPACK_IMPORTED_MODULE_2__["REPLACE"]) {
+      allKeys[current] = location.key;
+    }
+
+    changeListeners.forEach(function (listener) {
+      listener(location);
+    });
+  }
+
+  function listen(listener) {
+    changeListeners.push(listener);
+
+    if (location) {
+      listener(location);
+    } else {
+      var _location = getCurrentLocation();
+      allKeys = [_location.key];
+      updateLocation(_location);
+    }
+
+    return function () {
+      changeListeners = changeListeners.filter(function (item) {
+        return item !== listener;
+      });
+    };
+  }
+
+  function confirmTransitionTo(location, callback) {
+    Object(_AsyncUtils__WEBPACK_IMPORTED_MODULE_1__["loopAsync"])(transitionHooks.length, function (index, next, done) {
+      Object(_runTransitionHook__WEBPACK_IMPORTED_MODULE_4__["default"])(transitionHooks[index], location, function (result) {
+        if (result != null) {
+          done(result);
+        } else {
+          next();
+        }
+      });
+    }, function (message) {
+      if (getUserConfirmation && typeof message === 'string') {
+        getUserConfirmation(message, function (ok) {
+          callback(ok !== false);
+        });
+      } else {
+        callback(message !== false);
+      }
+    });
+  }
+
+  var pendingLocation = undefined;
+
+  function transitionTo(nextLocation) {
+    if (location && locationsAreEqual(location, nextLocation)) return; // Nothing to do.
+
+    pendingLocation = nextLocation;
+
+    confirmTransitionTo(nextLocation, function (ok) {
+      if (pendingLocation !== nextLocation) return; // Transition was interrupted.
+
+      if (ok) {
+        // treat PUSH to current path like REPLACE to be consistent with browsers
+        if (nextLocation.action === _Actions__WEBPACK_IMPORTED_MODULE_2__["PUSH"]) {
+          var prevPath = createPath(location);
+          var nextPath = createPath(nextLocation);
+
+          if (nextPath === prevPath) nextLocation.action = _Actions__WEBPACK_IMPORTED_MODULE_2__["REPLACE"];
+        }
+
+        if (finishTransition(nextLocation) !== false) updateLocation(nextLocation);
+      } else if (location && nextLocation.action === _Actions__WEBPACK_IMPORTED_MODULE_2__["POP"]) {
+        var prevIndex = allKeys.indexOf(location.key);
+        var nextIndex = allKeys.indexOf(nextLocation.key);
+
+        if (prevIndex !== -1 && nextIndex !== -1) go(prevIndex - nextIndex); // Restore the URL.
+      }
+    });
+  }
+
+  function push(location) {
+    transitionTo(createLocation(location, _Actions__WEBPACK_IMPORTED_MODULE_2__["PUSH"], createKey()));
+  }
+
+  function replace(location) {
+    transitionTo(createLocation(location, _Actions__WEBPACK_IMPORTED_MODULE_2__["REPLACE"], createKey()));
+  }
+
+  function goBack() {
+    go(-1);
+  }
+
+  function goForward() {
+    go(1);
+  }
+
+  function createKey() {
+    return createRandomKey(keyLength);
+  }
+
+  function createPath(location) {
+    if (location == null || typeof location === 'string') return location;
+
+    var pathname = location.pathname;
+    var search = location.search;
+    var hash = location.hash;
+
+    var result = pathname;
+
+    if (search) result += search;
+
+    if (hash) result += hash;
+
+    return result;
+  }
+
+  function createHref(location) {
+    return createPath(location);
+  }
+
+  function createLocation(location, action) {
+    var key = arguments.length <= 2 || arguments[2] === undefined ? createKey() : arguments[2];
+
+    if (typeof action === 'object') {
+      //warning(
+      //  false,
+      //  'The state (2nd) argument to history.createLocation is deprecated; use a ' +
+      //  'location descriptor instead'
+      //)
+
+      if (typeof location === 'string') location = Object(_parsePath__WEBPACK_IMPORTED_MODULE_5__["default"])(location);
+
+      location = _extends({}, location, { state: action });
+
+      action = key;
+      key = arguments[3] || createKey();
+    }
+
+    return Object(_createLocation__WEBPACK_IMPORTED_MODULE_3__["default"])(location, action, key);
+  }
+
+  // deprecated
+  function setState(state) {
+    if (location) {
+      updateLocationState(location, state);
+      updateLocation(location);
+    } else {
+      updateLocationState(getCurrentLocation(), state);
+    }
+  }
+
+  function updateLocationState(location, state) {
+    location.state = _extends({}, location.state, state);
+    saveState(location.key, location.state);
+  }
+
+  // deprecated
+  function registerTransitionHook(hook) {
+    if (transitionHooks.indexOf(hook) === -1) transitionHooks.push(hook);
+  }
+
+  // deprecated
+  function unregisterTransitionHook(hook) {
+    transitionHooks = transitionHooks.filter(function (item) {
+      return item !== hook;
+    });
+  }
+
+  // deprecated
+  function pushState(state, path) {
+    if (typeof path === 'string') path = Object(_parsePath__WEBPACK_IMPORTED_MODULE_5__["default"])(path);
+
+    push(_extends({ state: state }, path));
+  }
+
+  // deprecated
+  function replaceState(state, path) {
+    if (typeof path === 'string') path = Object(_parsePath__WEBPACK_IMPORTED_MODULE_5__["default"])(path);
+
+    replace(_extends({ state: state }, path));
+  }
+
+  return {
+    listenBefore: listenBefore,
+    listen: listen,
+    transitionTo: transitionTo,
+    push: push,
+    replace: replace,
+    go: go,
+    goBack: goBack,
+    goForward: goForward,
+    createKey: createKey,
+    createPath: createPath,
+    createHref: createHref,
+    createLocation: createLocation,
+
+    setState: Object(_deprecate__WEBPACK_IMPORTED_MODULE_6__["default"])(setState, 'setState is deprecated; use location.key to save state instead'),
+    registerTransitionHook: Object(_deprecate__WEBPACK_IMPORTED_MODULE_6__["default"])(registerTransitionHook, 'registerTransitionHook is deprecated; use listenBefore instead'),
+    unregisterTransitionHook: Object(_deprecate__WEBPACK_IMPORTED_MODULE_6__["default"])(unregisterTransitionHook, 'unregisterTransitionHook is deprecated; use the callback returned from listenBefore instead'),
+    pushState: Object(_deprecate__WEBPACK_IMPORTED_MODULE_6__["default"])(pushState, 'pushState is deprecated; use push instead'),
+    replaceState: Object(_deprecate__WEBPACK_IMPORTED_MODULE_6__["default"])(replaceState, 'replaceState is deprecated; use replace instead')
+  };
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (createHistory);
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/createLocation.js":
+/*!****************************************************!*\
+  !*** ./node_modules/history/es6/createLocation.js ***!
+  \****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Actions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Actions */ "./node_modules/history/es6/Actions.js");
+/* harmony import */ var _parsePath__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./parsePath */ "./node_modules/history/es6/parsePath.js");
+//import warning from 'warning'
+
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+
+
+
+function createLocation() {
+  var location = arguments.length <= 0 || arguments[0] === undefined ? '/' : arguments[0];
+  var action = arguments.length <= 1 || arguments[1] === undefined ? _Actions__WEBPACK_IMPORTED_MODULE_0__["POP"] : arguments[1];
+  var key = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
+
+  var _fourthArg = arguments.length <= 3 || arguments[3] === undefined ? null : arguments[3];
+
+  if (typeof location === 'string') location = Object(_parsePath__WEBPACK_IMPORTED_MODULE_1__["default"])(location);
+
+  if (typeof action === 'object') {
+    //warning(
+    //  false,
+    //  'The state (2nd) argument to createLocation is deprecated; use a ' +
+    //  'location descriptor instead'
+    //)
+
+    location = _extends({}, location, { state: action });
+
+    action = key || _Actions__WEBPACK_IMPORTED_MODULE_0__["POP"];
+    key = _fourthArg;
+  }
+
+  var pathname = location.pathname || '/';
+  var search = location.search || '';
+  var hash = location.hash || '';
+  var state = location.state || null;
+
+  return {
+    pathname: pathname,
+    search: search,
+    hash: hash,
+    state: state,
+    action: action,
+    key: key
+  };
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (createLocation);
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/createMemoryHistory.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/history/es6/createMemoryHistory.js ***!
+  \*********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! warning */ "./node_modules/warning/browser.js");
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(warning__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var invariant__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! invariant */ "./node_modules/invariant/browser.js");
+/* harmony import */ var invariant__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(invariant__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _Actions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Actions */ "./node_modules/history/es6/Actions.js");
+/* harmony import */ var _createHistory__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./createHistory */ "./node_modules/history/es6/createHistory.js");
+/* harmony import */ var _parsePath__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./parsePath */ "./node_modules/history/es6/parsePath.js");
+
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+
+
+
+
+
+
+function createStateStorage(entries) {
+  return entries.filter(function (entry) {
+    return entry.state;
+  }).reduce(function (memo, entry) {
+    memo[entry.key] = entry.state;
+    return memo;
+  }, {});
+}
+
+function createMemoryHistory() {
+  var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+  if (Array.isArray(options)) {
+    options = { entries: options };
+  } else if (typeof options === 'string') {
+    options = { entries: [options] };
+  }
+
+  var history = Object(_createHistory__WEBPACK_IMPORTED_MODULE_3__["default"])(_extends({}, options, {
+    getCurrentLocation: getCurrentLocation,
+    finishTransition: finishTransition,
+    saveState: saveState,
+    go: go
+  }));
+
+  var _options = options;
+  var entries = _options.entries;
+  var current = _options.current;
+
+  if (typeof entries === 'string') {
+    entries = [entries];
+  } else if (!Array.isArray(entries)) {
+    entries = ['/'];
+  }
+
+  entries = entries.map(function (entry) {
+    var key = history.createKey();
+
+    if (typeof entry === 'string') return { pathname: entry, key: key };
+
+    if (typeof entry === 'object' && entry) return _extends({}, entry, { key: key });
+
+     true ?  true ? invariant__WEBPACK_IMPORTED_MODULE_1___default()(false, 'Unable to create history entry from %s', entry) : undefined : undefined;
+  });
+
+  if (current == null) {
+    current = entries.length - 1;
+  } else {
+    !(current >= 0 && current < entries.length) ?  true ? invariant__WEBPACK_IMPORTED_MODULE_1___default()(false, 'Current index must be >= 0 and < %s, was %s', entries.length, current) : undefined : undefined;
+  }
+
+  var storage = createStateStorage(entries);
+
+  function saveState(key, state) {
+    storage[key] = state;
+  }
+
+  function readState(key) {
+    return storage[key];
+  }
+
+  function getCurrentLocation() {
+    var entry = entries[current];
+    var key = entry.key;
+    var basename = entry.basename;
+    var pathname = entry.pathname;
+    var search = entry.search;
+
+    var path = (basename || '') + pathname + (search || '');
+
+    var state = undefined;
+    if (key) {
+      state = readState(key);
+    } else {
+      state = null;
+      key = history.createKey();
+      entry.key = key;
+    }
+
+    var location = Object(_parsePath__WEBPACK_IMPORTED_MODULE_4__["default"])(path);
+
+    return history.createLocation(_extends({}, location, { state: state }), undefined, key);
+  }
+
+  function canGo(n) {
+    var index = current + n;
+    return index >= 0 && index < entries.length;
+  }
+
+  function go(n) {
+    if (n) {
+      if (!canGo(n)) {
+         true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(false, 'Cannot go(%s) there is not enough history', n) : undefined;
+        return;
+      }
+
+      current += n;
+
+      var currentLocation = getCurrentLocation();
+
+      // change action to POP
+      history.transitionTo(_extends({}, currentLocation, { action: _Actions__WEBPACK_IMPORTED_MODULE_2__["POP"] }));
+    }
+  }
+
+  function finishTransition(location) {
+    switch (location.action) {
+      case _Actions__WEBPACK_IMPORTED_MODULE_2__["PUSH"]:
+        current += 1;
+
+        // if we are not on the top of stack
+        // remove rest and push new
+        if (current < entries.length) entries.splice(current);
+
+        entries.push(location);
+        saveState(location.key, location.state);
+        break;
+      case _Actions__WEBPACK_IMPORTED_MODULE_2__["REPLACE"]:
+        entries[current] = location;
+        saveState(location.key, location.state);
+        break;
+    }
+  }
+
+  return history;
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (createMemoryHistory);
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/deprecate.js":
+/*!***********************************************!*\
+  !*** ./node_modules/history/es6/deprecate.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+//import warning from 'warning'
+
+
+
+function deprecate(fn) {
+  return fn;
+  //return function () {
+  //  warning(false, '[history] ' + message)
+  //  return fn.apply(this, arguments)
+  //}
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (deprecate);
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/enableBeforeUnload.js":
+/*!********************************************************!*\
+  !*** ./node_modules/history/es6/enableBeforeUnload.js ***!
+  \********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _deprecate__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./deprecate */ "./node_modules/history/es6/deprecate.js");
+/* harmony import */ var _useBeforeUnload__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./useBeforeUnload */ "./node_modules/history/es6/useBeforeUnload.js");
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (Object(_deprecate__WEBPACK_IMPORTED_MODULE_0__["default"])(_useBeforeUnload__WEBPACK_IMPORTED_MODULE_1__["default"], 'enableBeforeUnload is deprecated, use useBeforeUnload instead'));
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/enableQueries.js":
+/*!***************************************************!*\
+  !*** ./node_modules/history/es6/enableQueries.js ***!
+  \***************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _deprecate__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./deprecate */ "./node_modules/history/es6/deprecate.js");
+/* harmony import */ var _useQueries__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./useQueries */ "./node_modules/history/es6/useQueries.js");
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (Object(_deprecate__WEBPACK_IMPORTED_MODULE_0__["default"])(_useQueries__WEBPACK_IMPORTED_MODULE_1__["default"], 'enableQueries is deprecated, use useQueries instead'));
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/extractPath.js":
+/*!*************************************************!*\
+  !*** ./node_modules/history/es6/extractPath.js ***!
+  \*************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+
+
+function extractPath(string) {
+  var match = string.match(/^https?:\/\/[^\/]*/);
+
+  if (match == null) return string;
+
+  return string.substring(match[0].length);
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (extractPath);
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/index.js":
+/*!*******************************************!*\
+  !*** ./node_modules/history/es6/index.js ***!
+  \*******************************************/
+/*! exports provided: createHistory, createHashHistory, createMemoryHistory, useBasename, useBeforeUnload, useQueries, Actions, enableBeforeUnload, enableQueries, createLocation */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createLocation", function() { return createLocation; });
+/* harmony import */ var _deprecate__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./deprecate */ "./node_modules/history/es6/deprecate.js");
+/* harmony import */ var _createLocation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./createLocation */ "./node_modules/history/es6/createLocation.js");
+/* harmony import */ var _createBrowserHistory__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./createBrowserHistory */ "./node_modules/history/es6/createBrowserHistory.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createHistory", function() { return _createBrowserHistory__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _createHashHistory__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./createHashHistory */ "./node_modules/history/es6/createHashHistory.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createHashHistory", function() { return _createHashHistory__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _createMemoryHistory__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./createMemoryHistory */ "./node_modules/history/es6/createMemoryHistory.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createMemoryHistory", function() { return _createMemoryHistory__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+/* harmony import */ var _useBasename__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./useBasename */ "./node_modules/history/es6/useBasename.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "useBasename", function() { return _useBasename__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+
+/* harmony import */ var _useBeforeUnload__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./useBeforeUnload */ "./node_modules/history/es6/useBeforeUnload.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "useBeforeUnload", function() { return _useBeforeUnload__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+
+/* harmony import */ var _useQueries__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./useQueries */ "./node_modules/history/es6/useQueries.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "useQueries", function() { return _useQueries__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+
+/* harmony import */ var _Actions__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./Actions */ "./node_modules/history/es6/Actions.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Actions", function() { return _Actions__WEBPACK_IMPORTED_MODULE_8__["default"]; });
+
+/* harmony import */ var _enableBeforeUnload__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./enableBeforeUnload */ "./node_modules/history/es6/enableBeforeUnload.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "enableBeforeUnload", function() { return _enableBeforeUnload__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+
+/* harmony import */ var _enableQueries__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./enableQueries */ "./node_modules/history/es6/enableQueries.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "enableQueries", function() { return _enableQueries__WEBPACK_IMPORTED_MODULE_10__["default"]; });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// deprecated
+
+
+
+
+var createLocation = Object(_deprecate__WEBPACK_IMPORTED_MODULE_0__["default"])(_createLocation__WEBPACK_IMPORTED_MODULE_1__["default"], 'Using createLocation without a history instance is deprecated; please use history.createLocation instead');
+
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/parsePath.js":
+/*!***********************************************!*\
+  !*** ./node_modules/history/es6/parsePath.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! warning */ "./node_modules/warning/browser.js");
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(warning__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _extractPath__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./extractPath */ "./node_modules/history/es6/extractPath.js");
+
+
+
+
+
+function parsePath(path) {
+  var pathname = Object(_extractPath__WEBPACK_IMPORTED_MODULE_1__["default"])(path);
+  var search = '';
+  var hash = '';
+
+   true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(path === pathname, 'A path must be pathname + search + hash only, not a fully qualified URL like "%s"', path) : undefined;
+
+  var hashIndex = pathname.indexOf('#');
+  if (hashIndex !== -1) {
+    hash = pathname.substring(hashIndex);
+    pathname = pathname.substring(0, hashIndex);
+  }
+
+  var searchIndex = pathname.indexOf('?');
+  if (searchIndex !== -1) {
+    search = pathname.substring(searchIndex);
+    pathname = pathname.substring(0, searchIndex);
+  }
+
+  if (pathname === '') pathname = '/';
+
+  return {
+    pathname: pathname,
+    search: search,
+    hash: hash
+  };
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (parsePath);
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/runTransitionHook.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/history/es6/runTransitionHook.js ***!
+  \*******************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! warning */ "./node_modules/warning/browser.js");
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(warning__WEBPACK_IMPORTED_MODULE_0__);
+
+
+
+
+function runTransitionHook(hook, location, callback) {
+  var result = hook(location, callback);
+
+  if (hook.length < 2) {
+    // Assume the hook runs synchronously and automatically
+    // call the callback with the return value.
+    callback(result);
+  } else {
+     true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(result === undefined, 'You should not "return" in a transition hook with a callback argument; call the callback instead') : undefined;
+  }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (runTransitionHook);
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/useBasename.js":
+/*!*************************************************!*\
+  !*** ./node_modules/history/es6/useBasename.js ***!
+  \*************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ExecutionEnvironment */ "./node_modules/history/es6/ExecutionEnvironment.js");
+/* harmony import */ var _runTransitionHook__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./runTransitionHook */ "./node_modules/history/es6/runTransitionHook.js");
+/* harmony import */ var _extractPath__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./extractPath */ "./node_modules/history/es6/extractPath.js");
+/* harmony import */ var _parsePath__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./parsePath */ "./node_modules/history/es6/parsePath.js");
+/* harmony import */ var _deprecate__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./deprecate */ "./node_modules/history/es6/deprecate.js");
+
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
+
+
+
+
+
+
+function useBasename(createHistory) {
+  return function () {
+    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    var basename = options.basename;
+
+    var historyOptions = _objectWithoutProperties(options, ['basename']);
+
+    var history = createHistory(historyOptions);
+
+    // Automatically use the value of <base href> in HTML
+    // documents as basename if it's not explicitly given.
+    if (basename == null && _ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_0__["canUseDOM"]) {
+      var base = document.getElementsByTagName('base')[0];
+
+      if (base) basename = Object(_extractPath__WEBPACK_IMPORTED_MODULE_2__["default"])(base.href);
+    }
+
+    function addBasename(location) {
+      if (basename && location.basename == null) {
+        if (location.pathname.indexOf(basename) === 0) {
+          location.pathname = location.pathname.substring(basename.length);
+          location.basename = basename;
+
+          if (location.pathname === '') location.pathname = '/';
+        } else {
+          location.basename = '';
+        }
+      }
+
+      return location;
+    }
+
+    function prependBasename(location) {
+      if (!basename) return location;
+
+      if (typeof location === 'string') location = Object(_parsePath__WEBPACK_IMPORTED_MODULE_3__["default"])(location);
+
+      var pname = location.pathname;
+      var normalizedBasename = basename.slice(-1) === '/' ? basename : basename + '/';
+      var normalizedPathname = pname.charAt(0) === '/' ? pname.slice(1) : pname;
+      var pathname = normalizedBasename + normalizedPathname;
+
+      return _extends({}, location, {
+        pathname: pathname
+      });
+    }
+
+    // Override all read methods with basename-aware versions.
+    function listenBefore(hook) {
+      return history.listenBefore(function (location, callback) {
+        Object(_runTransitionHook__WEBPACK_IMPORTED_MODULE_1__["default"])(hook, addBasename(location), callback);
+      });
+    }
+
+    function listen(listener) {
+      return history.listen(function (location) {
+        listener(addBasename(location));
+      });
+    }
+
+    // Override all write methods with basename-aware versions.
+    function push(location) {
+      history.push(prependBasename(location));
+    }
+
+    function replace(location) {
+      history.replace(prependBasename(location));
+    }
+
+    function createPath(location) {
+      return history.createPath(prependBasename(location));
+    }
+
+    function createHref(location) {
+      return history.createHref(prependBasename(location));
+    }
+
+    function createLocation() {
+      return addBasename(history.createLocation.apply(history, arguments));
+    }
+
+    // deprecated
+    function pushState(state, path) {
+      if (typeof path === 'string') path = Object(_parsePath__WEBPACK_IMPORTED_MODULE_3__["default"])(path);
+
+      push(_extends({ state: state }, path));
+    }
+
+    // deprecated
+    function replaceState(state, path) {
+      if (typeof path === 'string') path = Object(_parsePath__WEBPACK_IMPORTED_MODULE_3__["default"])(path);
+
+      replace(_extends({ state: state }, path));
+    }
+
+    return _extends({}, history, {
+      listenBefore: listenBefore,
+      listen: listen,
+      push: push,
+      replace: replace,
+      createPath: createPath,
+      createHref: createHref,
+      createLocation: createLocation,
+
+      pushState: Object(_deprecate__WEBPACK_IMPORTED_MODULE_4__["default"])(pushState, 'pushState is deprecated; use push instead'),
+      replaceState: Object(_deprecate__WEBPACK_IMPORTED_MODULE_4__["default"])(replaceState, 'replaceState is deprecated; use replace instead')
+    });
+  };
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (useBasename);
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/useBeforeUnload.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/history/es6/useBeforeUnload.js ***!
+  \*****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! warning */ "./node_modules/warning/browser.js");
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(warning__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ExecutionEnvironment */ "./node_modules/history/es6/ExecutionEnvironment.js");
+/* harmony import */ var _DOMUtils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DOMUtils */ "./node_modules/history/es6/DOMUtils.js");
+/* harmony import */ var _deprecate__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./deprecate */ "./node_modules/history/es6/deprecate.js");
+
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+
+
+
+
+
+function startBeforeUnloadListener(getBeforeUnloadPromptMessage) {
+  function listener(event) {
+    var message = getBeforeUnloadPromptMessage();
+
+    if (typeof message === 'string') {
+      (event || window.event).returnValue = message;
+      return message;
+    }
+  }
+
+  Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_2__["addEventListener"])(window, 'beforeunload', listener);
+
+  return function () {
+    Object(_DOMUtils__WEBPACK_IMPORTED_MODULE_2__["removeEventListener"])(window, 'beforeunload', listener);
+  };
+}
+
+/**
+ * Returns a new createHistory function that can be used to create
+ * history objects that know how to use the beforeunload event in web
+ * browsers to cancel navigation.
+ */
+function useBeforeUnload(createHistory) {
+  return function (options) {
+    var history = createHistory(options);
+
+    var stopBeforeUnloadListener = undefined;
+    var beforeUnloadHooks = [];
+
+    function getBeforeUnloadPromptMessage() {
+      var message = undefined;
+
+      for (var i = 0, len = beforeUnloadHooks.length; message == null && i < len; ++i) {
+        message = beforeUnloadHooks[i].call();
+      }return message;
+    }
+
+    function listenBeforeUnload(hook) {
+      beforeUnloadHooks.push(hook);
+
+      if (beforeUnloadHooks.length === 1) {
+        if (_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_1__["canUseDOM"]) {
+          stopBeforeUnloadListener = startBeforeUnloadListener(getBeforeUnloadPromptMessage);
+        } else {
+           true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(false, 'listenBeforeUnload only works in DOM environments') : undefined;
+        }
+      }
+
+      return function () {
+        beforeUnloadHooks = beforeUnloadHooks.filter(function (item) {
+          return item !== hook;
+        });
+
+        if (beforeUnloadHooks.length === 0 && stopBeforeUnloadListener) {
+          stopBeforeUnloadListener();
+          stopBeforeUnloadListener = null;
+        }
+      };
+    }
+
+    // deprecated
+    function registerBeforeUnloadHook(hook) {
+      if (_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_1__["canUseDOM"] && beforeUnloadHooks.indexOf(hook) === -1) {
+        beforeUnloadHooks.push(hook);
+
+        if (beforeUnloadHooks.length === 1) stopBeforeUnloadListener = startBeforeUnloadListener(getBeforeUnloadPromptMessage);
+      }
+    }
+
+    // deprecated
+    function unregisterBeforeUnloadHook(hook) {
+      if (beforeUnloadHooks.length > 0) {
+        beforeUnloadHooks = beforeUnloadHooks.filter(function (item) {
+          return item !== hook;
+        });
+
+        if (beforeUnloadHooks.length === 0) stopBeforeUnloadListener();
+      }
+    }
+
+    return _extends({}, history, {
+      listenBeforeUnload: listenBeforeUnload,
+
+      registerBeforeUnloadHook: Object(_deprecate__WEBPACK_IMPORTED_MODULE_3__["default"])(registerBeforeUnloadHook, 'registerBeforeUnloadHook is deprecated; use listenBeforeUnload instead'),
+      unregisterBeforeUnloadHook: Object(_deprecate__WEBPACK_IMPORTED_MODULE_3__["default"])(unregisterBeforeUnloadHook, 'unregisterBeforeUnloadHook is deprecated; use the callback returned from listenBeforeUnload instead')
+    });
+  };
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (useBeforeUnload);
+
+/***/ }),
+
+/***/ "./node_modules/history/es6/useQueries.js":
+/*!************************************************!*\
+  !*** ./node_modules/history/es6/useQueries.js ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! warning */ "./node_modules/warning/browser.js");
+/* harmony import */ var warning__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(warning__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var query_string__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! query-string */ "./node_modules/query-string/index.js");
+/* harmony import */ var query_string__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(query_string__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _runTransitionHook__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./runTransitionHook */ "./node_modules/history/es6/runTransitionHook.js");
+/* harmony import */ var _parsePath__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./parsePath */ "./node_modules/history/es6/parsePath.js");
+/* harmony import */ var _deprecate__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./deprecate */ "./node_modules/history/es6/deprecate.js");
+
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
+
+
+
+
+
+
+var SEARCH_BASE_KEY = '$searchBase';
+
+function defaultStringifyQuery(query) {
+  return Object(query_string__WEBPACK_IMPORTED_MODULE_1__["stringify"])(query).replace(/%20/g, '+');
+}
+
+var defaultParseQueryString = query_string__WEBPACK_IMPORTED_MODULE_1__["parse"];
+
+function isNestedObject(object) {
+  for (var p in object) {
+    if (object.hasOwnProperty(p) && typeof object[p] === 'object' && !Array.isArray(object[p]) && object[p] !== null) return true;
+  }return false;
+}
+
+/**
+ * Returns a new createHistory function that may be used to create
+ * history objects that know how to handle URL queries.
+ */
+function useQueries(createHistory) {
+  return function () {
+    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    var stringifyQuery = options.stringifyQuery;
+    var parseQueryString = options.parseQueryString;
+
+    var historyOptions = _objectWithoutProperties(options, ['stringifyQuery', 'parseQueryString']);
+
+    var history = createHistory(historyOptions);
+
+    if (typeof stringifyQuery !== 'function') stringifyQuery = defaultStringifyQuery;
+
+    if (typeof parseQueryString !== 'function') parseQueryString = defaultParseQueryString;
+
+    function addQuery(location) {
+      if (location.query == null) {
+        var search = location.search;
+
+        location.query = parseQueryString(search.substring(1));
+        location[SEARCH_BASE_KEY] = { search: search, searchBase: '' };
+      }
+
+      // TODO: Instead of all the book-keeping here, this should just strip the
+      // stringified query from the search.
+
+      return location;
+    }
+
+    function appendQuery(location, query) {
+      var _extends2;
+
+      var queryString = undefined;
+      if (!query || (queryString = stringifyQuery(query)) === '') return location;
+
+       true ? warning__WEBPACK_IMPORTED_MODULE_0___default()(stringifyQuery !== defaultStringifyQuery || !isNestedObject(query), 'useQueries does not stringify nested query objects by default; ' + 'use a custom stringifyQuery function') : undefined;
+
+      if (typeof location === 'string') location = Object(_parsePath__WEBPACK_IMPORTED_MODULE_3__["default"])(location);
+
+      var searchBaseSpec = location[SEARCH_BASE_KEY];
+      var searchBase = undefined;
+      if (searchBaseSpec && location.search === searchBaseSpec.search) {
+        searchBase = searchBaseSpec.searchBase;
+      } else {
+        searchBase = location.search || '';
+      }
+
+      var search = searchBase + (searchBase ? '&' : '?') + queryString;
+
+      return _extends({}, location, (_extends2 = {
+        search: search
+      }, _extends2[SEARCH_BASE_KEY] = { search: search, searchBase: searchBase }, _extends2));
+    }
+
+    // Override all read methods with query-aware versions.
+    function listenBefore(hook) {
+      return history.listenBefore(function (location, callback) {
+        Object(_runTransitionHook__WEBPACK_IMPORTED_MODULE_2__["default"])(hook, addQuery(location), callback);
+      });
+    }
+
+    function listen(listener) {
+      return history.listen(function (location) {
+        listener(addQuery(location));
+      });
+    }
+
+    // Override all write methods with query-aware versions.
+    function push(location) {
+      history.push(appendQuery(location, location.query));
+    }
+
+    function replace(location) {
+      history.replace(appendQuery(location, location.query));
+    }
+
+    function createPath(location, query) {
+      //warning(
+      //  !query,
+      //  'the query argument to createPath is deprecated; use a location descriptor instead'
+      //)
+      return history.createPath(appendQuery(location, query || location.query));
+    }
+
+    function createHref(location, query) {
+      //warning(
+      //  !query,
+      //  'the query argument to createHref is deprecated; use a location descriptor instead'
+      //)
+      return history.createHref(appendQuery(location, query || location.query));
+    }
+
+    function createLocation() {
+      return addQuery(history.createLocation.apply(history, arguments));
+    }
+
+    // deprecated
+    function pushState(state, path, query) {
+      if (typeof path === 'string') path = Object(_parsePath__WEBPACK_IMPORTED_MODULE_3__["default"])(path);
+
+      push(_extends({ state: state }, path, { query: query }));
+    }
+
+    // deprecated
+    function replaceState(state, path, query) {
+      if (typeof path === 'string') path = Object(_parsePath__WEBPACK_IMPORTED_MODULE_3__["default"])(path);
+
+      replace(_extends({ state: state }, path, { query: query }));
+    }
+
+    return _extends({}, history, {
+      listenBefore: listenBefore,
+      listen: listen,
+      push: push,
+      replace: replace,
+      createPath: createPath,
+      createHref: createHref,
+      createLocation: createLocation,
+
+      pushState: Object(_deprecate__WEBPACK_IMPORTED_MODULE_4__["default"])(pushState, 'pushState is deprecated; use push instead'),
+      replaceState: Object(_deprecate__WEBPACK_IMPORTED_MODULE_4__["default"])(replaceState, 'replaceState is deprecated; use replace instead')
+    });
+  };
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (useQueries);
 
 /***/ }),
 
@@ -1327,6 +3412,84 @@ if (true) {
 var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
 
 module.exports = ReactPropTypesSecret;
+
+
+/***/ }),
+
+/***/ "./node_modules/query-string/index.js":
+/*!********************************************!*\
+  !*** ./node_modules/query-string/index.js ***!
+  \********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var strictUriEncode = __webpack_require__(/*! strict-uri-encode */ "./node_modules/strict-uri-encode/index.js");
+
+exports.extract = function (str) {
+	return str.split('?')[1] || '';
+};
+
+exports.parse = function (str) {
+	if (typeof str !== 'string') {
+		return {};
+	}
+
+	str = str.trim().replace(/^(\?|#|&)/, '');
+
+	if (!str) {
+		return {};
+	}
+
+	return str.split('&').reduce(function (ret, param) {
+		var parts = param.replace(/\+/g, ' ').split('=');
+		// Firefox (pre 40) decodes `%3D` to `=`
+		// https://github.com/sindresorhus/query-string/pull/37
+		var key = parts.shift();
+		var val = parts.length > 0 ? parts.join('=') : undefined;
+
+		key = decodeURIComponent(key);
+
+		// missing `=` should be `null`:
+		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
+		val = val === undefined ? null : decodeURIComponent(val);
+
+		if (!ret.hasOwnProperty(key)) {
+			ret[key] = val;
+		} else if (Array.isArray(ret[key])) {
+			ret[key].push(val);
+		} else {
+			ret[key] = [ret[key], val];
+		}
+
+		return ret;
+	}, {});
+};
+
+exports.stringify = function (obj) {
+	return obj ? Object.keys(obj).sort().map(function (key) {
+		var val = obj[key];
+
+		if (val === undefined) {
+			return '';
+		}
+
+		if (val === null) {
+			return key;
+		}
+
+		if (Array.isArray(val)) {
+			return val.slice().sort().map(function (val2) {
+				return strictUriEncode(key) + '=' + strictUriEncode(val2);
+			}).join('&');
+		}
+
+		return strictUriEncode(key) + '=' + strictUriEncode(val);
+	}).filter(function (x) {
+		return x.length > 0;
+	}).join('&') : '';
+};
 
 
 /***/ }),
@@ -28083,6 +30246,24 @@ if (false) {} else {
 
 /***/ }),
 
+/***/ "./node_modules/strict-uri-encode/index.js":
+/*!*************************************************!*\
+  !*** ./node_modules/strict-uri-encode/index.js ***!
+  \*************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+module.exports = function (str) {
+	return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
+		return '%' + c.charCodeAt(0).toString(16).toUpperCase();
+	});
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/value-equal/index.js":
 /*!*******************************************!*\
   !*** ./node_modules/value-equal/index.js ***!
@@ -28130,6 +30311,78 @@ function valueEqual(a, b) {
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (valueEqual);
+
+/***/ }),
+
+/***/ "./node_modules/warning/browser.js":
+/*!*****************************************!*\
+  !*** ./node_modules/warning/browser.js ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/**
+ * Copyright 2014-2015, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+
+
+
+/**
+ * Similar to invariant but only logs a warning if the condition is not met.
+ * This can be used to log issues in development environments in critical
+ * paths. Removing the logging code for production environments will keep the
+ * same logic and follow the same code paths.
+ */
+
+var warning = function() {};
+
+if (true) {
+  warning = function(condition, format, args) {
+    var len = arguments.length;
+    args = new Array(len > 2 ? len - 2 : 0);
+    for (var key = 2; key < len; key++) {
+      args[key - 2] = arguments[key];
+    }
+    if (format === undefined) {
+      throw new Error(
+        '`warning(condition, format, ...args)` requires a warning ' +
+        'message argument'
+      );
+    }
+
+    if (format.length < 10 || (/^[s\W]*$/).test(format)) {
+      throw new Error(
+        'The warning format should be able to uniquely identify this ' +
+        'warning. Please, use a more descriptive format than: ' + format
+      );
+    }
+
+    if (!condition) {
+      var argIndex = 0;
+      var message = 'Warning: ' +
+        format.replace(/%s/g, function() {
+          return args[argIndex++];
+        });
+      if (typeof console !== 'undefined') {
+        console.error(message);
+      }
+      try {
+        // This error was thrown as a convenience so that you can use this stack
+        // to find the callsite that caused this warning to fire.
+        throw new Error(message);
+      } catch(x) {}
+    }
+  };
+}
+
+module.exports = warning;
+
 
 /***/ }),
 
